@@ -198,13 +198,16 @@ static int MpuSelfTest()
   
   {
     // Activate gyro self-test and read responce
-    MpuWriteReg(MPU_GYRO_CONFIG, MpuReadReg(MPU_GYRO_CONFIG) & 0xE0);
+    uint8_t gyro_cfg = MpuReadReg(MPU_GYRO_CONFIG);
+    MpuWriteReg(MPU_GYRO_CONFIG, 0xE0);
     MpuReadSensorData(&responce1);
   
     // Deactivate gyro self-test and read response
-    MpuWriteReg(MPU_GYRO_CONFIG, MpuReadReg(MPU_GYRO_CONFIG) & ~0xE0);
+    MpuWriteReg(MPU_GYRO_CONFIG, gyro_cfg);
     MpuReadSensorData(&responce2);
   
+    Serial.print("GYRO_CONFIG = "); Serial.println(gyro_cfg, HEX);
+    
     // For each gyro axis calc factory trim value deviation
     int16_t axis_values_1[3] = {responce1.x_gyro, responce1.y_gyro, responce1.z_gyro};
     int16_t axis_values_2[3] = {responce2.x_gyro, responce2.y_gyro, responce2.z_gyro};
@@ -242,13 +245,16 @@ static int MpuSelfTest()
 
   {
     // Activate accel self-test and read responce
-    MpuWriteReg(MPU_ACCEL_CONFIG, MpuReadReg(MPU_ACCEL_CONFIG) & 0xE0);
+    uint8_t accel_cfg = MpuReadReg(MPU_ACCEL_CONFIG);
+    MpuWriteReg(MPU_ACCEL_CONFIG, 0xF0);
     MpuReadSensorData(&responce1);
   
     // Deactivate accel self-test and read response
-    MpuWriteReg(MPU_ACCEL_CONFIG, MpuReadReg(MPU_ACCEL_CONFIG) & ~0xE0);
+    MpuWriteReg(MPU_ACCEL_CONFIG, accel_cfg);
     MpuReadSensorData(&responce2);
-  
+    
+    Serial.print("ACCEL_CONFIG = "); Serial.println(accel_cfg, HEX);
+    
     // For each accel axis calc factory trim value deviation
     int16_t axis_values_1[3] = {responce1.x_accel, responce1.y_accel, responce1.z_accel};
     int16_t axis_values_2[3] = {responce2.x_accel, responce2.y_accel, responce2.z_accel};
@@ -298,6 +304,12 @@ void setup()
   val = MpuReadReg(MPU_WHO_AM_I);
   MPU_ASSERT(val == 0x68);
 
+  // Set gyro full scale range to 250
+  MpuWriteReg(MPU_GYRO_CONFIG, 0);
+ 
+  // Set accel full scale range to 8g
+  MpuWriteReg(MPU_ACCEL_CONFIG, 0x10); 
+  
   // Start sensor
   MpuWriteReg(MPU_PWG_MGMT_1, 0);
   
